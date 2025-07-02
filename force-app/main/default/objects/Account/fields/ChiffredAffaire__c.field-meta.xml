@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Chiffre_d_affaire__c</fullName>
-    <externalId>false</externalId>
-    <label>Chiffre affaire</label>
+    <fullName>ChiffredAffaire__c</fullName>
+    <label>Chiffre d&apos;affaire</label>
     <precision>18</precision>
     <required>false</required>
-    <scale>2</scale>
+    <scale>0</scale>
     <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
     <type>Currency</type>
 </CustomField>

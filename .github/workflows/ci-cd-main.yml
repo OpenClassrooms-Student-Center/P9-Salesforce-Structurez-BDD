@@ -1,0 +1,59 @@
+name: Deploy and Validate Metadata
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  sfdxvalidate:
+    name: "Run SFDX Validate"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce CLI (sf)
+        run: |
+          npm install --global @salesforce/cli
+
+      # Install Salesforce CLI
+      - name: 'Install Salesforce CLI'
+        run: |
+            wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
+            mkdir ~/sfdx
+            tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx --strip-components 1
+            echo "$HOME/sfdx/bin" >> $GITHUB_PATH
+            ~/sfdx/bin/sfdx version
+
+      - name: Verify Salesforce CLI
+        run: sfdx --version
+
+      - name: Install sfdx-git-delta plugin
+        run: |
+          yes | sfdx plugins:install sfdx-git-delta
+
+      
+      - name: Authentification Salesforce
+        env:
+          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL }}
+        run: |
+          echo $SF_AUTH_URL > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias myOrg --set-default
+
+      - name: Generate metadata delta using sfdx-git-delta
+        run: |
+          mkdir -p .temp
+          sfdx sgd:source:delta --to "HEAD" --from "origin/main" --output .temp --generate-delta
+
+          
+      - name: Deploy metadata to Salesforce
+        
+        run: |
+     
+         sfdx force:source:deploy -x .temp/package/package.xml -u myOrg --checkonly --ignorewarnings
+ 

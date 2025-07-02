@@ -1,9 +1,36 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 05-05-2025
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+<!--
+  @description       : Template pour afficher l'état de commande d'un compte (erreur, total des commandes ou indicateur de chargement)
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 05-05-2025
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
 <template>
-    <div class="slds-box slds-theme_error" >
-        <h1>Erreur, pas de commandes rattachées à ce compte ou le montant des commandes sont inférieurs à 0.</h1>
-    </div>
-    <!-- Si la valeur de "sumOrdersOfCurrentAccount" est vide ou égale a Zero, je souhaite afficher un message d'erreur -->
-    <div class="slds-box slds-theme_success" >
-        <h1>Total des Commandes : {sumOrdersOfCurrentAccount}</h1>
-    </div>
+    <!-- Affichage du message d'erreur si aucune commande ou montant ≤ 0 -->
+    <template if:true={hasError}>
+        <div class="slds-box slds-theme_error" role="alert">
+            <p>Erreur, pas de commandes ratachées à ce compte, ou le montant total est égale à 0.</p>
+        </div>
+    </template>
+
+    <!-- Affichage du total des commandes si la somme des commandes est disponible -->
+    <template if:true={sumOrdersOfCurrentAccount}>
+        <div class="slds-box slds-theme_success">
+            <p><strong>Total des Commandes :</strong> {sumOrdersOfCurrentAccount} €</p>
+        </div>
+    </template>
+
+    <!-- Affichage de l'indicateur de chargement pendant la récupération des données -->
+    <template if:true={isLoading}>
+        <div class="slds-spinner slds-spinner_medium slds-spinner_brand" role="status">
+            <span class="slds-assistive-text">Chargement...</span>
+        </div>
+    </template>
 </template>
