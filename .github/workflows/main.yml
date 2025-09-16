@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-pull_request:
-    branches:
-      - main
+
 
 jobs:
   deploy:
@@ -25,8 +23,10 @@ jobs:
         run: |
           echo "${{ secrets.SF_AUTH_URL }}" > ./auth.txt
           sf org login sfdx-url -f ./auth.txt -a deployOrg --set-default
+          # 5. Lancer les tests unitaires Apex
+
 
       # 4. Déployer tout le code
       - name: Deploy to Salesforce
         run: |
-          sf project deploy start --metadata-dir force-app/main/default --target-org deployOrg --ignore-conflicts
+          sf project deploy start --metadata-dir force-app/main/default --target-org deployOrg --ignore-conflicts --test-level RunLocalTests 

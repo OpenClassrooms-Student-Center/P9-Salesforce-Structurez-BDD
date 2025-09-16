@@ -1,0 +1,12 @@
+<template>
+    <template if:true={hasError}>
+        <div class="slds-box slds-theme_error">
+            <h1>Erreur, pas de commandes rattachées à ce compte ou le montant des commandes est inférieur ou égal à 0.</h1>
+        </div>
+    </template>
+    <template if:false={hasError}>
+        <div class="slds-box slds-theme_success">
+            <h1>Total des Commandes : {sumOrdersOfCurrentAccount}</h1>
+        </div>
+    </template>
+</template>
