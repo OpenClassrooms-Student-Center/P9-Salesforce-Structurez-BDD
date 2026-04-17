@@ -46,4 +46,4 @@ jobs:
       - name: 'Déployer les métadonnées sur la branch main'
         if: github.ref == 'refs/heads/main'
         run: | # A faire déployer le code venant du fichier package.xml généré précédemment
-          sf source deploy start -x .temp/package.xml -l RunLocalTests --targetusername ${{ secrets.USERNAME }} --wait 30
+          sf project deploy start -x .temp/package.xml -l RunLocalTests --targetusername ${{ secrets.USERNAME }} --wait 30
