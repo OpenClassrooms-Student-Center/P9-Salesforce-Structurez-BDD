@@ -40,10 +40,9 @@ jobs:
 
       - name: 'Generate metadata delta pull request'  # Utilisez le plug-in sfdx-git-delta pour effectuer un delta, generer le package xml dans un fichier temporaire ex : .temp
         run: | # A faire
-          mkdir .temp
-          sgd --repo . --to main --from develop --output .temp
+          sgd --repo . --to main --from develop --output .
 
       - name: 'Déployer les métadonnées sur la branch main'
         if: github.ref == 'refs/heads/main'
         run: | # A faire déployer le code venant du fichier package.xml généré précédemment
-          sf project deploy start -x .temp/package.xml -l RunLocalTests --targetusername ${{ secrets.USERNAME }} --wait 30
+          sf project deploy start -x package/package.xml -l RunLocalTests --post-destructive-changes destructiveChanges/destructiveChanges.xml --targetusername ${{ secrets.USERNAME }} --wait 30
