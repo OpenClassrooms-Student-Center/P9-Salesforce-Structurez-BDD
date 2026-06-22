@@ -1,9 +1,24 @@
 <template>
-    <div class="slds-box slds-theme_error" >
-        <h1>Erreur, pas de commandes rattachées à ce compte ou le montant des commandes sont inférieurs à 0.</h1>
-    </div>
-    <!-- Si la valeur de "sumOrdersOfCurrentAccount" est vide ou égale a Zero, je souhaite afficher un message d'erreur -->
-    <div class="slds-box slds-theme_success" >
-        <h1>Total des Commandes : {sumOrdersOfCurrentAccount}</h1>
-    </div>
+    <lightning-card title="Commandes du compte" icon-name="standard:orders">
+        <template lwc:if={hasTotal}>
+            <div class="slds-box slds-theme_success slds-p-around_medium">
+                <h1 class="slds-text-heading_small">
+                    Total des Commandes :
+                    <lightning-formatted-number
+                        value={total}
+                        format-style="currency"
+                        currency-code="EUR">
+                    </lightning-formatted-number>
+                </h1>
+            </div>
+        </template>
+
+        <template lwc:else>
+            <div class="slds-box slds-theme_error slds-p-around_medium">
+                <h1 class="slds-text-heading_small">
+                    Aucune commande activée pour ce compte ou montant total à 0.
+                </h1>
+            </div>
+        </template>
+    </lightning-card>
 </template>

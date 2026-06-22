@@ -8,6 +8,10 @@
 .localdevserver/
 deploy-options.json
 
+# IDE / Editor settings
+.vscode/
+.idea/
+
 # LWC VSCode autocomplete
 **/lwc/jsconfig.json
 

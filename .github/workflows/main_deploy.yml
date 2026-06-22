@@ -1,0 +1,103 @@
+name: Deploy and Validate Metadata
+
+# Stratégie de branches :
+#  - PR vers main  -> validation (deploy --dry-run) du delta avec RunLocalTests
+#  - push sur main -> déploiement réel du delta avec RunLocalTests
+#
+# Prérequis : configurer les secrets GitHub suivants dans le repo
+# (Settings > Secrets and variables > Actions) :
+#   SF_CONSUMER_KEY  : Consumer Key de la Connected App Salesforce
+#   SF_USERNAME      : email du user Salesforce utilisé pour le déploiement
+#   SF_JWT_KEY       : contenu de la clé privée RSA (server.key, format PEM)
+#   SF_INSTANCE_URL  : https://login.salesforce.com (prod / dev edition)
+#                      ou https://test.salesforce.com (sandbox)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-and-deploy:
+    name: Validate (PR) and Deploy (push)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Salesforce CLI and sfdx-git-delta
+        run: |
+          npm install -g @salesforce/cli@latest
+          echo "y" | npm install sfdx-git-delta@3.3.0 -g
+          sf --version
+
+      - name: Authenticate to Salesforce (JWT)
+        run: |
+          echo "${{ secrets.SF_JWT_KEY }}" | base64 -d > server.key
+          sf org login jwt \
+            --client-id "${{ secrets.SF_CONSUMER_KEY }}" \
+            --jwt-key-file server.key \
+            --username "${{ secrets.SF_USERNAME }}" \
+            --instance-url "${{ secrets.SF_INSTANCE_URL }}" \
+            --alias targetOrg \
+            --set-default
+
+      - name: Generate metadata delta package
+        run: |
+          mkdir -p delta
+          sgd source delta \
+            --to HEAD \
+            --from "origin/main" \
+            --output delta/ \
+            --generate-delta \
+            --source force-app \
+            --repo .
+          echo "=== Contenu du delta package.xml ==="
+          if [ -f delta/package/package.xml ]; then
+            cat delta/package/package.xml
+          else
+            echo "Aucun delta détecté."
+          fi
+
+      - name: Validate deployment (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f delta/package/package.xml ]; then
+            sf project deploy validate \
+              --source-dir delta/force-app \
+              --test-level RunLocalTests \
+              --wait 30
+          else
+            echo "Pas de changements à valider."
+          fi
+
+      - name: Deploy to Salesforce (push to main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [ -f delta/package/package.xml ]; then
+            sf project deploy start \
+              --source-dir delta/force-app \
+              --test-level RunLocalTests \
+              --wait 30
+          else
+            echo "Pas de changements à déployer."
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: rm -f server.key
